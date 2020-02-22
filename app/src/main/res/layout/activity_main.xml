@@ -1,6 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.nando.materialbackdrop.Backdrop
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<com.nando.materialbackdrop.Backdrop xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:tools="http://schemas.android.com/tools"
+    app:headerNavigationIcon="@drawable/ic_menu_black_24dp"
+    app:headerNavigationIconColor="@android:color/white"
+    app:headerTitle="@string/app_name"
+    app:headerMenu="@menu/menu"
+    app:subHeaderNavigationIcon="@drawable/ic_keyboard_arrow_down_black_24dp"
+    app:subHeaderTitle="@string/app_name"
     />

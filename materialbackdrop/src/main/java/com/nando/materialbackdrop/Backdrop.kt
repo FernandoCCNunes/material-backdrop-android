@@ -1,9 +1,16 @@
 package com.nando.materialbackdrop
 
 import android.content.Context
+import android.content.res.ColorStateList
 import android.content.res.TypedArray
 import android.util.AttributeSet
+import android.util.Log
+import androidx.appcompat.widget.AppCompatDrawableManager
 import androidx.coordinatorlayout.widget.CoordinatorLayout
+import androidx.core.content.ContextCompat
+import androidx.core.graphics.drawable.DrawableCompat
+import kotlinx.android.synthetic.main.backdrop.view.*
+
 
 class Backdrop: CoordinatorLayout {
 
@@ -29,6 +36,18 @@ class Backdrop: CoordinatorLayout {
     private var headerKeepActionBarWhenExpanded: Boolean = true
     private var subHeaderKeepActionBarWhenExpanded: Boolean = true
 
+
+    // Colors
+    private var headerBackgroundColor: ColorStateList? = null
+    private var headerNavigationIconColor: ColorStateList? = null
+    private var headerTitleColor: ColorStateList? = null
+    private var backgroundColor: ColorStateList? = null
+    private var subHeaderBackgroundColor: ColorStateList? = null
+    private var subHeaderNavigationIconColor: ColorStateList? = null
+    private var subHeaderTitleColor: ColorStateList? = null
+    private var foregroundColor: ColorStateList? = null
+
+
     constructor(context: Context) : super(context) {
         inflateLayout()
     }
@@ -53,6 +72,54 @@ class Backdrop: CoordinatorLayout {
     private fun inflateLayout() {
         inflate(context, R.layout.backdrop, this)
     }
+
+    override fun onFinishInflate() {
+        super.onFinishInflate()
+
+        // Header
+
+        if (headerNavigationIcon != null) {
+            val icon = AppCompatDrawableManager.get().getDrawable(context, headerNavigationIcon!!)
+            if (headerNavigationIconColor != null) {
+                DrawableCompat.setTintList(icon, headerNavigationIconColor)
+            }
+            backdrop_back_layout_header.navigationIcon = icon
+        }
+
+        if (headerTitle != null) {
+            backdrop_back_layout_header.title = headerTitle
+            if (headerTitleColor != null) {
+                backdrop_back_layout_header.setTitleTextColor(headerTitleColor!!)
+            }
+        }
+
+        if (headerMenu != null) {
+            backdrop_back_layout_header.inflateMenu(headerMenu!!)
+        }
+
+
+        // SubHeader
+
+
+        if (subHeaderNavigationIcon != null) {
+            val icon = AppCompatDrawableManager.get().getDrawable(context, subHeaderNavigationIcon!!)
+            if (subHeaderNavigationIconColor != null) {
+                DrawableCompat.setTintList(icon, headerNavigationIconColor)
+            }
+            backdrop_front_layout_header.navigationIcon = icon
+        }
+
+        if (subHeaderTitle != null) {
+            backdrop_front_layout_header.title = subHeaderTitle
+            if (subHeaderTitleColor != null) {
+                backdrop_front_layout_header.setTitleTextColor(subHeaderTitleColor!!)
+            } else if (subHeaderTitleColor.isValid()) {
+                Log.d("Backdrop", "subHeaderTitleColor -> $subHeaderTitleColor")
+                backdrop_front_layout_header.setTitleTextColor(ContextCompat.getColor(context, subHeaderTitleColor!!))
+            }
+        }
+    }
+
 
     private fun setupAttributes(attrs: AttributeSet?) {
         val typedArray = context.obtainStyledAttributes(attrs, R.styleable.Backdrop, 0, 0)
@@ -145,7 +212,60 @@ class Backdrop: CoordinatorLayout {
         if (typedArray.hasValue(R.styleable.Backdrop_subHeaderKeepActionBarWhenExpanded)) {
             subHeaderKeepActionBarWhenExpanded = typedArray.getBoolean(R.styleable.Backdrop_subHeaderKeepActionBarWhenExpanded, true)
         }
+
+
+
+        // Colors
+        if (typedArray.hasValue(R.styleable.Backdrop_headerBackgroundColor)) {
+            headerBackgroundColor = typedArray.getColorStateList(R.styleable.Backdrop_headerBackgroundColor)
+        }
+
+        if (typedArray.hasValue(R.styleable.Backdrop_headerNavigationIconColor)) {
+            headerNavigationIconColor = typedArray.getColorStateList(R.styleable.Backdrop_headerNavigationIconColor)
+        }
+
+        if (typedArray.hasValue(R.styleable.Backdrop_headerTitleColor)) {
+            headerTitleColor = typedArray.getColorStateList(R.styleable.Backdrop_headerTitleColor)
+        }
+
+        if (typedArray.hasValue(R.styleable.Backdrop_backgroundColor)) {
+            backgroundColor = typedArray.getColorStateList(R.styleable.Backdrop_backgroundColor)
+        }
+
+        if (typedArray.hasValue(R.styleable.Backdrop_subHeaderBackgroundColor)) {
+            subHeaderBackgroundColor = typedArray.getColorStateList(R.styleable.Backdrop_subHeaderBackgroundColor)
+        }
+
+        if (typedArray.hasValue(R.styleable.Backdrop_subHeaderNavigationIconColor)) {
+            subHeaderNavigationIconColor = typedArray.getColorStateList(R.styleable.Backdrop_subHeaderNavigationIconColor)
+        }
+
+        if (typedArray.hasValue(R.styleable.Backdrop_subHeaderTitleColor)) {
+            subHeaderTitleColor = typedArray.getColorStateList(R.styleable.Backdrop_subHeaderTitleColor)
+        }
+
+        if (typedArray.hasValue(R.styleable.Backdrop_foregroundColor)) {
+            foregroundColor = typedArray.getColorStateList(R.styleable.Backdrop_foregroundColor)
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     }
+
+
 
     private fun verifyResourceVariables() {
         if (headerNavigationIcon == -1) headerNavigationIcon = null
@@ -153,4 +273,6 @@ class Backdrop: CoordinatorLayout {
         if (subHeaderNavigationIcon == -1) subHeaderNavigationIcon = null
         if (subHeaderExpandedNavigationIcon == -1) subHeaderExpandedNavigationIcon = null
     }
+
+    private fun Int?.isValid() : Boolean =  this != null && this != -1
 }

@@ -5,7 +5,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:theme="@style/BackdropBaseTheme">
 
     <!--This the interface sitting behind the backdrop and shown when it is collapsed-->
     <LinearLayout
@@ -13,12 +14,15 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:background="@color/colorPrimary">
+        android:background="?backgroundColor"
+        >
 
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/backdrop_back_layout_header"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
+            android:background="?headerBackgroundColor"
+            app:titleTextColor="?headerTitleColor"
             />
 
 
@@ -30,7 +34,6 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:background="@drawable/main_activity_bottom_sheet_corners"
         app:behavior_peekHeight="?attr/actionBarSize"
         app:behavior_draggable="false"
         app:behavior_fitToContents="false"
@@ -41,6 +44,7 @@
             android:id="@+id/backdrop_front_layout_header"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
+            android:background="@drawable/backdrop_bottom_sheet_corners"
             />
 
         <!--And finally this is the body of the backdrop's content. You can add here whatever you need inside a view group (LinearLayout, RelativeLayout, SwipeRefreshLayout, ConstraintLayout, etc.)-->
@@ -48,7 +52,8 @@
             android:id="@+id/backdrop_front_layout_content"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:background="?foregroundColor">
 
         </LinearLayout>
 

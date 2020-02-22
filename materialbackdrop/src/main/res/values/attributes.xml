@@ -1,23 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <declare-styleable name="Backdrop">
+
         <attr name="headerNavigationIcon" format="reference"/>
         <attr name="headerExpandedNavigationIcon" format="reference"/>
         <attr name="headerTitle" format="string"/>
         <attr name="headerExpandedTitle" format="string"/>
-        <attr name="headerMenu" format="reference"/>
         <attr name="headerExpandedMenu" format="reference"/>
         <attr name="headerKeepActionBarWhenExpanded" format="boolean"/>
+
 
         <attr name="subHeaderNavigationIcon" format="reference"/>
         <attr name="subHeaderExpandedNavigationIcon" format="reference"/>
         <attr name="subHeaderTitle" format="string"/>
         <attr name="subHeaderExpandedTitle" format="string"/>
-        <attr name="subHeaderMenu" format="reference"/>
         <attr name="subHeaderExpandedMenu" format="reference"/>
         <attr name="subHeaderKeepActionBarWhenExpanded" format="boolean"/>
 
+        <!-- Colors -->
+        <attr name="headerBackgroundColor" format="color"/>
+        <attr name="headerNavigationIconColor" format="color"/>
+        <attr name="headerTitleColor" format="color"/>
+        <attr name="backgroundColor" format="color"/>
+        <attr name="subHeaderBackgroundColor" format="color" />
+        <attr name="subHeaderNavigationIconColor" format="color"/>
+        <attr name="subHeaderTitleColor" format="color"/>
+        <attr name="foregroundColor" format="color"/>
 
+        <!-- Menu -->
+        <attr name="headerMenu" format="reference"/>
+        <attr name="subHeaderMenu" format="reference"/>
 
     </declare-styleable>
 
