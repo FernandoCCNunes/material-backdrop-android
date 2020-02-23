@@ -2,12 +2,32 @@
 <resources>
     <declare-styleable name="Backdrop">
 
+        <attr name="initialState">
+            <enum name="expanded" value="0"/>
+            <enum name="collapsed" value="1"/>
+            <enum name="hidden" value="1"/>
+        </attr>
+
+        <attr name="canDrag" format="boolean"/>
+
+        <attr name="minHeight" format="dimension"/>
+
+        <attr name="expandedOffset" format="dimension"/>
+
+        <attr name="fitsToContents" format="boolean"/>
+
         <attr name="headerNavigationIcon" format="reference"/>
-        <attr name="headerExpandedNavigationIcon" format="reference"/>
         <attr name="headerTitle" format="string"/>
+        <attr name="headerMenu" format="reference"/>
+
+    </declare-styleable>
+
+    <declare-styleable name="BackdropWithSteps">
+
+        <attr name="headerExpandedNavigationIcon" format="reference"/>
+
         <attr name="headerExpandedTitle" format="string"/>
         <attr name="headerExpandedMenu" format="reference"/>
-        <attr name="headerKeepActionBarWhenExpanded" format="boolean"/>
 
 
         <attr name="subHeaderNavigationIcon" format="reference"/>
@@ -15,7 +35,6 @@
         <attr name="subHeaderTitle" format="string"/>
         <attr name="subHeaderExpandedTitle" format="string"/>
         <attr name="subHeaderExpandedMenu" format="reference"/>
-        <attr name="subHeaderKeepActionBarWhenExpanded" format="boolean"/>
 
         <!-- Colors -->
         <attr name="headerBackgroundColor" format="color"/>
@@ -28,7 +47,7 @@
         <attr name="foregroundColor" format="color"/>
 
         <!-- Menu -->
-        <attr name="headerMenu" format="reference"/>
+
         <attr name="subHeaderMenu" format="reference"/>
 
     </declare-styleable>

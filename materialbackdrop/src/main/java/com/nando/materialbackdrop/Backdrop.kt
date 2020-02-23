@@ -1,72 +1,123 @@
 package com.nando.materialbackdrop
 
 import android.content.Context
-import android.content.res.ColorStateList
 import android.content.res.TypedArray
 import android.util.AttributeSet
 import android.util.Log
-import androidx.appcompat.widget.AppCompatDrawableManager
+import android.view.MenuItem
+import android.view.View
+import android.view.ViewGroup
 import androidx.coordinatorlayout.widget.CoordinatorLayout
-import androidx.core.content.ContextCompat
-import androidx.core.graphics.drawable.DrawableCompat
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import kotlinx.android.synthetic.main.backdrop.view.*
 
 
-class Backdrop: CoordinatorLayout {
+open class Backdrop: CoordinatorLayout {
 
-    // Navigation Icon
-    private var headerNavigationIcon: Int? = null
-    private var headerExpandedNavigationIcon: Int? = null
-    private var subHeaderNavigationIcon: Int? = null
-    private var subHeaderExpandedNavigationIcon: Int? = null
+    private val TAG = "Backdrop"
 
-    // Title
-    private var headerTitle: String? = null
-    private var headerExpandedTitle: String? = null
-    private var subHeaderTitle: String? = null
-    private var subHeaderExpandedTitle: String? = null
+    private val backPanel: ViewGroup by lazy {backdrop_back_panel}
+    private val frontPanel: ViewGroup by lazy {backdrop_front_panel}
+    private val bottomSheetBehavior: BottomSheetBehavior<ViewGroup> by lazy {
+        BottomSheetBehavior.from(frontPanel)
+    }
 
-    // Menu
-    private var headerMenu: Int? = null
-    private var headerExpandedMenu: Int? = null
-    private var subHeaderMenu: Int? = null
-    private var subHeaderExpandedMenu: Int? = null
+    private var initialState: Int = 0
+    private var canDrag: Boolean = false
+    private var minHeight: Float = 0f
+    private var expandedOffset: Float = 0f
+    private var fitsToContents: Boolean = false
 
-    // Keep Actionbar
-    private var headerKeepActionBarWhenExpanded: Boolean = true
-    private var subHeaderKeepActionBarWhenExpanded: Boolean = true
+    // Listeners
+
+    private val bottomSheetCallback: BottomSheetBehavior.BottomSheetCallback by lazy {
+        object: BottomSheetBehavior.BottomSheetCallback() {
+            override fun onSlide(bottomSheet: View, slideOffset: Float) {
+                if (onBottomSheetSlideListener != null) onBottomSheetSlideListener!!(bottomSheet, slideOffset)
+            }
+
+            override fun onStateChanged(bottomSheet: View, newState: Int) {
+                if (onBottomSheetStateChangedListener != null) onBottomSheetStateChangedListener!!(bottomSheet, newState)
+            }
+        }
+    }
+    private var onBottomSheetSlideListener: ((bottomSheet: View, slideOffset: Float) -> Unit)? = null
+    private var onBottomSheetStateChangedListener: ((bottomSheet: View, newState: Int) -> Unit)? = null
+
+    private var onHeaderNavigationIconClickListener: ((icon: View) -> Unit)? = null
+    private var headerMenuItemClickListener: ((item: MenuItem) -> Boolean)? = null
+
+    // Back Panel Header
+    var headerNavigationIcon: Int = -1
+    var headerTitle: String? = null
+    var headerMenu: Int? = null
 
 
-    // Colors
-    private var headerBackgroundColor: ColorStateList? = null
-    private var headerNavigationIconColor: ColorStateList? = null
-    private var headerTitleColor: ColorStateList? = null
-    private var backgroundColor: ColorStateList? = null
-    private var subHeaderBackgroundColor: ColorStateList? = null
-    private var subHeaderNavigationIconColor: ColorStateList? = null
-    private var subHeaderTitleColor: ColorStateList? = null
-    private var foregroundColor: ColorStateList? = null
+
 
 
     constructor(context: Context) : super(context) {
         inflateLayout()
     }
 
-    constructor(context: Context, attrs: AttributeSet) : super(context) {
+    constructor(context: Context, attrs: AttributeSet) : super(context, attrs) {
         setupAttributes(attrs)
         inflateLayout()
     }
 
-    constructor(context: Context, attrs: AttributeSet, defStyleAttr: Int) : super(context) {
+    constructor(context: Context, attrs: AttributeSet, defStyleAttr: Int) : super(context, attrs, defStyleAttr) {
         setupAttributes(attrs, defStyleAttr)
         inflateLayout()
     }
 
-    constructor(context: Context, attrs: AttributeSet, defStyleAttr: Int, defStyleRes: Int) : super(context) {
-        setupAttributes(attrs, defStyleAttr, defStyleRes)
-        verifyResourceVariables()
-        inflateLayout()
+    private fun setupAttributes(attrs: AttributeSet?) {
+        val typedArray = context.obtainStyledAttributes(attrs, R.styleable.Backdrop, 0, 0)
+        getAttributes(typedArray)
+        typedArray.recycle()
+    }
 
+    private fun setupAttributes(attrs: AttributeSet?, defStyleAttr: Int) {
+        val typedArray =
+            context.obtainStyledAttributes(attrs, R.styleable.Backdrop, defStyleAttr, 0)
+        getAttributes(typedArray)
+        typedArray.recycle()
+    }
+
+    private fun getAttributes(typedArray: TypedArray) {
+
+        if (typedArray.hasValue(R.styleable.Backdrop_initialState)) {
+            initialState = typedArray.getInt(R.styleable.Backdrop_initialState, 0)
+        }
+
+        if (typedArray.hasValue(R.styleable.Backdrop_canDrag)) {
+            canDrag = typedArray.getBoolean(R.styleable.Backdrop_canDrag, false)
+        }
+
+        if (typedArray.hasValue(R.styleable.Backdrop_minHeight)) {
+            minHeight = typedArray.getDimension(R.styleable.Backdrop_minHeight, 0f)
+        }
+
+        if (typedArray.hasValue(R.styleable.Backdrop_expandedOffset)) {
+            expandedOffset = typedArray.getDimension(R.styleable.Backdrop_expandedOffset, 0f)
+        }
+
+        if (typedArray.hasValue(R.styleable.Backdrop_fitsToContents)) {
+            fitsToContents = typedArray.getBoolean(R.styleable.Backdrop_fitsToContents, false)
+        }
+
+        // Header
+
+        if (typedArray.hasValue(R.styleable.Backdrop_headerNavigationIcon)) {
+            headerNavigationIcon = typedArray.getResourceId(R.styleable.Backdrop_headerNavigationIcon, -1)
+        }
+
+        if (typedArray.hasValue(R.styleable.Backdrop_headerTitle)) {
+            headerTitle = typedArray.getString(R.styleable.Backdrop_headerTitle)
+        }
+
+        if (typedArray.hasValue(R.styleable.Backdrop_headerMenu)) {
+            headerMenu = typedArray.getResourceId(R.styleable.Backdrop_headerMenu, -1)
+        }
     }
 
     private fun inflateLayout() {
@@ -76,203 +127,113 @@ class Backdrop: CoordinatorLayout {
     override fun onFinishInflate() {
         super.onFinishInflate()
 
-        // Header
+        setBottomSheetBehaviour()
+        setBackPanelHeader()
+    }
 
-        if (headerNavigationIcon != null) {
-            val icon = AppCompatDrawableManager.get().getDrawable(context, headerNavigationIcon!!)
-            if (headerNavigationIconColor != null) {
-                DrawableCompat.setTintList(icon, headerNavigationIconColor)
-            }
-            backdrop_back_layout_header.navigationIcon = icon
+    private fun setBottomSheetBehaviour() {
+        val params = frontPanel.layoutParams as LayoutParams
+        params.behavior = BottomSheetBehavior<ViewGroup>()
+        frontPanel.requestLayout()
+        bottomSheetBehavior.setExpandedOffset(expandedOffset.toInt())
+        bottomSheetBehavior.peekHeight = minHeight.toInt()
+        bottomSheetBehavior.isDraggable = canDrag
+        bottomSheetBehavior.isFitToContents = fitsToContents
+        when(initialState) {
+            0 -> bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
+            1 -> bottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
+            2 -> bottomSheetBehavior.state = BottomSheetBehavior.STATE_HIDDEN
+        }
+    }
+
+    private fun setBackPanelHeader() {
+        addOnHeaderNavigationIconClickListener()
+        addOnHeaderMenuItemClickListener()
+
+        if (headerNavigationIcon != -1) {
+            backdrop_back_panel_header.setNavigationIcon(headerNavigationIcon)
         }
 
         if (headerTitle != null) {
-            backdrop_back_layout_header.title = headerTitle
-            if (headerTitleColor != null) {
-                backdrop_back_layout_header.setTitleTextColor(headerTitleColor!!)
-            }
+            backdrop_back_panel_header.title = headerTitle
         }
 
         if (headerMenu != null) {
-            backdrop_back_layout_header.inflateMenu(headerMenu!!)
+            backdrop_back_panel_header.inflateMenu(headerMenu!!)
+
         }
+    }
 
+    private fun addBottomSheetCalbackListener() {
+        Log.d(TAG, "adding BottomSheetCallback listener to the view")
+        bottomSheetBehavior.addBottomSheetCallback(bottomSheetCallback)
+    }
 
-        // SubHeader
+    private fun removeBottomSheetCalbackListener() {
+        Log.d(TAG, "removing BottomSheetCallback listener from view")
+        bottomSheetBehavior.removeBottomSheetCallback(bottomSheetCallback)
+    }
 
+    private fun addOnHeaderNavigationIconClickListener() {
+        backdrop_back_panel_header.setNavigationOnClickListener {
+            if (onHeaderNavigationIconClickListener != null) onHeaderNavigationIconClickListener!!(it)
+        }
+    }
 
-        if (subHeaderNavigationIcon != null) {
-            val icon = AppCompatDrawableManager.get().getDrawable(context, subHeaderNavigationIcon!!)
-            if (subHeaderNavigationIconColor != null) {
-                DrawableCompat.setTintList(icon, headerNavigationIconColor)
+    private fun addOnHeaderMenuItemClickListener() {
+        backdrop_back_panel_header.setOnMenuItemClickListener {
+            if (headerMenuItemClickListener != null) {
+                headerMenuItemClickListener!!(it)
             }
-            backdrop_front_layout_header.navigationIcon = icon
-        }
-
-        if (subHeaderTitle != null) {
-            backdrop_front_layout_header.title = subHeaderTitle
-            if (subHeaderTitleColor != null) {
-                backdrop_front_layout_header.setTitleTextColor(subHeaderTitleColor!!)
-            } else if (subHeaderTitleColor.isValid()) {
-                Log.d("Backdrop", "subHeaderTitleColor -> $subHeaderTitleColor")
-                backdrop_front_layout_header.setTitleTextColor(ContextCompat.getColor(context, subHeaderTitleColor!!))
-            }
+            false
         }
     }
 
-
-    private fun setupAttributes(attrs: AttributeSet?) {
-        val typedArray = context.obtainStyledAttributes(attrs, R.styleable.Backdrop, 0, 0)
-        getAttributes(typedArray)
-        typedArray.recycle()
+    fun expandFrontLayer() {
+        bottomSheetBehavior.state = BottomSheetBehavior.STATE_EXPANDED
     }
 
-    private fun setupAttributes(attrs: AttributeSet?, defStyleAttr: Int) {
-        val typedArray = context.obtainStyledAttributes(attrs, R.styleable.Backdrop, defStyleAttr, 0)
-        getAttributes(typedArray)
-        typedArray.recycle()
+    fun collapseFrontLayer() {
+        bottomSheetBehavior.state = BottomSheetBehavior.STATE_COLLAPSED
     }
 
-    private fun setupAttributes(attrs: AttributeSet?, defStyleAttr: Int, defStyleRes: Int) {
-        val typedArray = context.obtainStyledAttributes(attrs, R.styleable.Backdrop, defStyleAttr, defStyleRes)
-        getAttributes(typedArray)
-        typedArray.recycle()
+    fun toggleFrontLayer() {
+        if (isFrontLayerExpanded()) collapseFrontLayer()
+        else expandFrontLayer()
     }
 
-    private fun getAttributes(typedArray: TypedArray) {
+    fun isFrontLayerExpanded(): Boolean = bottomSheetBehavior.state == BottomSheetBehavior.STATE_EXPANDED
 
-        // Navigation
-        if (typedArray.hasValue(R.styleable.Backdrop_headerNavigationIcon)) {
-            headerNavigationIcon = typedArray.getResourceId(R.styleable.Backdrop_headerNavigationIcon, -1)
-        }
+    fun setOnBottomSheetSlideListener(listener: (bottomSheet: View, slideOffset: Float) -> Unit) {
+        onBottomSheetSlideListener = listener
+    }
 
-        if (typedArray.hasValue(R.styleable.Backdrop_headerExpandedNavigationIcon)) {
-            headerExpandedNavigationIcon = typedArray.getResourceId(R.styleable.Backdrop_headerExpandedNavigationIcon, -1)
-        } else {
-            headerExpandedNavigationIcon = headerNavigationIcon
-        }
+    fun setOnBottomSheetStateChangedListener(listener: (bottomSheet: View, newState: Int) -> Unit) {
+        onBottomSheetStateChangedListener = listener
+    }
 
-        if (typedArray.hasValue(R.styleable.Backdrop_headerNavigationIcon)) {
-            subHeaderNavigationIcon = typedArray.getResourceId(R.styleable.Backdrop_subHeaderNavigationIcon, -1)
-        }
+    fun setOnHeaderNavigationIconClickListener(listener: (icon: View) -> Unit) {
+        onHeaderNavigationIconClickListener = listener
+    }
 
-        if (typedArray.hasValue(R.styleable.Backdrop_headerExpandedNavigationIcon)) {
-            subHeaderExpandedNavigationIcon = typedArray.getResourceId(R.styleable.Backdrop_subHeaderExpandedNavigationIcon, -1)
-        } else {
-            subHeaderExpandedNavigationIcon = subHeaderNavigationIcon
-        }
-
-        // Title
-        if (typedArray.hasValue(R.styleable.Backdrop_headerTitle)) {
-            headerTitle = typedArray.getString(R.styleable.Backdrop_headerTitle)
-        }
-
-        if (typedArray.hasValue(R.styleable.Backdrop_headerExpandedTitle)) {
-            headerExpandedTitle = typedArray.getString(R.styleable.Backdrop_headerExpandedTitle)
-        } else {
-            headerExpandedTitle = headerTitle
-        }
-
-        if (typedArray.hasValue(R.styleable.Backdrop_subHeaderTitle)) {
-            subHeaderTitle = typedArray.getString(R.styleable.Backdrop_subHeaderTitle)
-        }
-
-        if (typedArray.hasValue(R.styleable.Backdrop_subHeaderExpandedTitle)) {
-            subHeaderExpandedTitle = typedArray.getString(R.styleable.Backdrop_subHeaderExpandedTitle)
-        } else {
-            subHeaderExpandedTitle = subHeaderTitle
-        }
-
-        // Menu
-        if (typedArray.hasValue(R.styleable.Backdrop_headerMenu)) {
-            headerMenu = typedArray.getResourceId(R.styleable.Backdrop_headerMenu, -1)
-        }
-
-        if (typedArray.hasValue(R.styleable.Backdrop_headerExpandedMenu)) {
-            headerExpandedMenu = typedArray.getResourceId(R.styleable.Backdrop_headerExpandedMenu, -1)
-        } else {
-            headerExpandedMenu = headerMenu
-        }
-
-        if (typedArray.hasValue(R.styleable.Backdrop_subHeaderMenu)) {
-            subHeaderMenu = typedArray.getResourceId(R.styleable.Backdrop_subHeaderMenu, -1)
-        }
-
-        if (typedArray.hasValue(R.styleable.Backdrop_subHeaderExpandedMenu)) {
-            subHeaderExpandedMenu = typedArray.getResourceId(R.styleable.Backdrop_subHeaderExpandedMenu, -1)
-        } else {
-            subHeaderExpandedMenu = subHeaderMenu
-        }
-
-        // Keep ActionBar
-        if (typedArray.hasValue(R.styleable.Backdrop_headerKeepActionBarWhenExpanded)) {
-            headerKeepActionBarWhenExpanded = typedArray.getBoolean(R.styleable.Backdrop_headerKeepActionBarWhenExpanded, true)
-        }
-
-        if (typedArray.hasValue(R.styleable.Backdrop_subHeaderKeepActionBarWhenExpanded)) {
-            subHeaderKeepActionBarWhenExpanded = typedArray.getBoolean(R.styleable.Backdrop_subHeaderKeepActionBarWhenExpanded, true)
-        }
-
-
-
-        // Colors
-        if (typedArray.hasValue(R.styleable.Backdrop_headerBackgroundColor)) {
-            headerBackgroundColor = typedArray.getColorStateList(R.styleable.Backdrop_headerBackgroundColor)
-        }
-
-        if (typedArray.hasValue(R.styleable.Backdrop_headerNavigationIconColor)) {
-            headerNavigationIconColor = typedArray.getColorStateList(R.styleable.Backdrop_headerNavigationIconColor)
-        }
-
-        if (typedArray.hasValue(R.styleable.Backdrop_headerTitleColor)) {
-            headerTitleColor = typedArray.getColorStateList(R.styleable.Backdrop_headerTitleColor)
-        }
-
-        if (typedArray.hasValue(R.styleable.Backdrop_backgroundColor)) {
-            backgroundColor = typedArray.getColorStateList(R.styleable.Backdrop_backgroundColor)
-        }
-
-        if (typedArray.hasValue(R.styleable.Backdrop_subHeaderBackgroundColor)) {
-            subHeaderBackgroundColor = typedArray.getColorStateList(R.styleable.Backdrop_subHeaderBackgroundColor)
-        }
-
-        if (typedArray.hasValue(R.styleable.Backdrop_subHeaderNavigationIconColor)) {
-            subHeaderNavigationIconColor = typedArray.getColorStateList(R.styleable.Backdrop_subHeaderNavigationIconColor)
-        }
-
-        if (typedArray.hasValue(R.styleable.Backdrop_subHeaderTitleColor)) {
-            subHeaderTitleColor = typedArray.getColorStateList(R.styleable.Backdrop_subHeaderTitleColor)
-        }
-
-        if (typedArray.hasValue(R.styleable.Backdrop_foregroundColor)) {
-            foregroundColor = typedArray.getColorStateList(R.styleable.Backdrop_foregroundColor)
-        }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    fun setOnHeaderMenuItemClickListener(listener: (item: MenuItem) -> Boolean) {
+        this.headerMenuItemClickListener = listener
     }
 
 
 
-    private fun verifyResourceVariables() {
-        if (headerNavigationIcon == -1) headerNavigationIcon = null
-        if (headerExpandedNavigationIcon == -1) headerExpandedNavigationIcon = null
-        if (subHeaderNavigationIcon == -1) subHeaderNavigationIcon = null
-        if (subHeaderExpandedNavigationIcon == -1) subHeaderExpandedNavigationIcon = null
+    private fun debug(message: String) {
+        Log.d("Backdrop", message)
     }
 
-    private fun Int?.isValid() : Boolean =  this != null && this != -1
+
+    override fun onDetachedFromWindow() {
+        removeBottomSheetCalbackListener()
+        super.onDetachedFromWindow()
+    }
+
+    override fun onAttachedToWindow() {
+        super.onAttachedToWindow()
+        addBottomSheetCalbackListener()
+    }
 }
